@@ -6,7 +6,7 @@ import numpy as np
 from pydobot import Dobot
 
 # connect and setup DOBOT
-d = Dobot('COM5', 0)
+d = Dobot('/dev/cu.usbserial-0001', 0)
 d._set_end_effector_suction_cup(False)
 d._set_ptp_coordinate_params(150, 150)
 d._set_ptp_common_params(150, 100)
@@ -29,10 +29,38 @@ movex = {
 
 
 class Checkerboard:
-    def __init__(
-        self, test=0, z=-70, x=265.3, y=45.5, x_offset=-35.8, y_offset=-39,
-        home=[140, 100, 0], first=1, r_value=1500, b_value=1500, upr=0.0,
-            cx=50, cy=50):
+    def __init__(self, test=0, x=265.3, y=45.5, z=-70, x_offset=-35.8, y_offset=-39, 
+                 home=[140, 100, 0], first=1, 
+                 r_value=1500, b_value=1500, upr=0.0, cx=50, cy=50):
+        """
+        Represents a checkerboard game board and its associated properties, including the position of the Dobot robotic arm, 
+        camera parameters, and chess coordinates.
+
+        Attributes:
+        test (int): A test flag for debugging.
+        z (float): The z-coordinate of the Dobot robotic arm.
+        x (float): The x-coordinate of the top left corner of the grid.
+        y (float): The y-coordinate of the top left corner of the grid.
+        x_offset (float): The horizontal distance between adjacent squares on the grid.
+        y_offset (float): The vertical distance between adjacent squares on the grid.
+        home (list): A list containing the x, y, and z coordinates of the Dobot's home position.
+        first (int): A flag indicating whether the Dobot is moving first.
+        r_value (int): The color area threshold for identifying red squares.
+        b_value (int): The color area threshold for identifying black squares.
+        upr (float): The unit pixel ratio for converting between pixels and real-world distances.
+        cx (int): The x-coordinate of the center of the grid on the camera image.
+        cy (int): The y-coordinate of the center of the grid on the camera image.
+        round (int): The number of moves made.
+        blankcount (int): The number of consecutive empty squares encountered.
+        cap: The OpenCV video capture object.
+        sit (int): The current situation ID.
+        pos (list): A list of six tuples containing the x and y coordinates of each of the six chess positions.
+        checkattemp (int): The number of attempts made to check for changes on the board.
+        checkerboard (str): A string representing the state of the board, with '0' for empty squares, '1' for black 
+            pieces, and '2' for red pieces.
+        checkerboardchecks (list): A list of checkboard strings representing the previous states of the board.
+        grid (numpy.ndarray): A 2x4 array representing the coordinates of each square on the grid.
+        """
         self.test = test
         self.r_value = r_value  # color area threshold
         self.b_value = b_value  # ''
@@ -63,8 +91,11 @@ class Checkerboard:
         self.grid = np.array([[0, 100, 200, 300], [0, 100, 200, 300]])  # cropping
 
     def c(self):  # capture the checkerboard
-        d._set_ptp_cmd(self.home[0], self.home[1], self.home[2], 0, 0x02)
+        hx, hy, hz = self.home
+        # d._set_ptp_cmd(self.home[0], self.home[1], self.home[2], 0, 0x02)
+        d._set_ptp_cmd(hx, hy, hz, 0, 0x02)
         self.frame = self.cap.read()[1]
+
 
     def com(self):  # compare new and old checkerboard
         if (sum(map(lambda c0, c1, c2: c0 == c1 == c2,
@@ -87,12 +118,13 @@ class Checkerboard:
         else:
             return False
 
+
     def cnt(self, src, lmask, umask, lmask1=0, umask1=0, getCenter=False):  # find contour
         blurred = cv2.GaussianBlur(src, (5, 5), 0)
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if lmask1 + umask1 != 0:
             mask1 = cv2.inRange(hsv, lmask1, umask1)
             mask = mask + mask1
         contours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
@@ -116,12 +148,13 @@ class Checkerboard:
             else:
                 return 0, 0
 
+
     def cntcenter(self, src, threshold, lmask, umask, lmask1=0, umask1=0):  # find contour of all placed chess and get their centers
         blurred = cv2.GaussianBlur(src, (5, 5), 0)
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if lmask1 + umask1 != 0:
             mask1 = cv2.inRange(hsv, lmask1, umask1)
             mask = mask + mask1
         contours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
@@ -139,6 +172,7 @@ class Checkerboard:
                     center = (cX, cY)
                     self.centers.append(center)
         return self.centers
+
 
     def transform(self):  # matrix perspective transform of image
         global initstat, pts1
@@ -164,6 +198,7 @@ class Checkerboard:
             self.grids.append(
                 self.frame[self.grid[0, i // 3]:self.grid[0, i // 3+1],
                            self.grid[1, i % 3]:self.grid[1, i % 3+1]])
+
 
     def check(self, delay=0, startc=0, getCenter=0):  # recognize the checkerboard
         global initstat
@@ -240,6 +275,7 @@ class Checkerboard:
         else:
             return False
 
+
     def rows(self):  # divide the checkerboard into 8 rows
         self.checkerboardv = np.array(
             [int(x) for x in self.checkerboard]).reshape(3, 3)
@@ -252,6 +288,7 @@ class Checkerboard:
         self.r.append((self.checkerboardv[:, 2], 5))
         self.r.append((self.checkerboardv.diagonal(), 6))
         self.r.append((np.flip(self.checkerboardv, 1).diagonal(), 7))
+
 
     def situation(self):
         self.sit = 0
@@ -306,11 +343,13 @@ class Checkerboard:
 
         return self.sit
 
+
     def intention(self):
         self.coor = [self.x + self.x_offset * self.move[0],
                      self.y + self.y_offset * self.move[1]]
         print(self.move, self.coor, sep='   ')
         return self.coor
+
 
     def m(self):  # move
         # get
@@ -332,6 +371,7 @@ class Checkerboard:
             self.move[0] * 3 + self.move[1] + 1:]
         self.round += 1
 
+
     def start(self):  # start game setup
         d._set_ptp_cmd(self.home[0], self.home[1], self.home[2], 0, 0x02)
         time.sleep(3)
@@ -342,6 +382,7 @@ class Checkerboard:
             else:
                 print('please clear the board.')
             time.sleep(1.5)
+
 
     def end(self):  # end game and clear checkerboard
         if self.sit < 5:
