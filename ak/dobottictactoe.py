@@ -90,6 +90,7 @@ class Checkerboard:
         self.checkerboardchecks = ['0' * 9] * 3  # list of self.checkattemp
         self.grid = np.array([[0, 100, 200, 300], [0, 100, 200, 300]])  # cropping
 
+
     def c(self):  # capture the checkerboard
         hx, hy, hz = self.home
         # d._set_ptp_cmd(self.home[0], self.home[1], self.home[2], 0, 0x02)
