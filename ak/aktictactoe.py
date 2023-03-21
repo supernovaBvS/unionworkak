@@ -30,26 +30,19 @@ movex = {
 
 
 class Checkerboard:
-    def __init__(
-        # self, test=0, z=-70, x=265.3 , y=45.5, x_offset=-35.8, y_offset=-39,
-        self, test=0, z=-50, x=295 , y=45, x_offset=-45, y_offset=-45,
-        home=[140, 130, 0], first=1, r_value=1500, b_value=1500, upr=0.0,
-            cx=150, cy=150):
+    def __init__(self, test=0, z=-50, x=295 , y=45, x_offset=-45, y_offset=-45,
+                 home=[140, 130, 0], first=1, r_value=1500, b_value=1500, cx=150, cy=150):
         self.test = test
         self.r_value = r_value  # color area threshold
         self.b_value = b_value  # ''
-
         self.round = 0  # moved count
         self.first = first  # is bot first
         self.blankcount = 0
         self.x, self.y, self.z = x, y, z  # grid #1 coordinates (top left of Dobot #1)
-
         # ** x, y, x_offset, y_offset must be as precise as possible for Dobot #1.
-
-        self.upr = upr  # unit pixel ratio
         self.cx, self.cy = cx, cy  # grid #1 center image coordinates (normally (55, 55))
         self.x_offset, self.y_offset = x_offset, y_offset
-        self.xupr, self.yupr = self.x_offset , self.y_offset   # unit pixel ratio
+        self.xupr, self.yupr = self.x_offset/95, self.y_offset/95   # unit pixel ratio
         self.cap = cv2.VideoCapture(0)
 
         self.home = home  # home position
@@ -58,8 +51,8 @@ class Checkerboard:
                     (self.x+self.x_offset, self.y+self.y_offset*2-35),
                     (self.x+2*x_offset, self.y+self.y_offset*2-35),
                     (self.x, self.y+35),
-                    (self.x+self.x_offset, self.y+35),
-                    (self.x+2*self.x_offset, self.y+35)]  # default chess coordinates
+                    (self.x+self.x_offset, self.y+38),
+                    (self.x+2*self.x_offset, self.y+38)]  # default chess coordinates
         print (self.pos)
         self.checkattemp = 0  # saving checks
         self.checkerboard = '0' * 9  # checkerboard with color id
@@ -318,10 +311,10 @@ class Checkerboard:
         return self.sit
 
     def intention(self):
-        print ("self.move[0] = ",self.move[0])
-        print ("self.move[1] = ",self.move[1])
-        self.coor = [self.x + self.x_offset * self.move[0],
-                     self.y + self.y_offset * self.move[1]]
+        print ("self.move[0]red = ",self.move[0])
+        print ("self.move[1]blue = ",self.move[1])
+        self.coor = [self.x + (self.x_offset * self.move[0]),
+                     self.y + (self.y_offset * self.move[1])]
         print(self.move, self.coor, sep='   ')
         return self.coor
 
@@ -355,6 +348,7 @@ class Checkerboard:
 
     def end(self):  # end game and clear checkerboard
         if self.sit < 5:
+            #
             pass
         else:
             while self.check(getCenter=True) is False:
@@ -373,42 +367,42 @@ class Checkerboard:
             elif self.sit == 6:
                 print('draw')
 
+
             for i, j in zip(self.red_centers, range(len(self.red_centers))):  # red
                 # get
 
                 print([self.x, i[1] , self.cx],[self.y, i[0] , self.cy])
                        
                 
-                self.coor = [self.x + (i[1] - self.cx) * self.xupr,
-                             self.y + (i[0] - self.cy) * self.yupr, ]
+                self.coor = [self.x + (i[1] - self.cx) ,
+                             self.y + (i[0] - self.cy) ]
                 print(self.coor)
                 d.suck(False)
-                d.jump(self.coor[0], self.coor[1], self.z)
+                d.jump(self.coor[0], self.coor[1], self.z, 0)
                 d.suck(True)
-                d.movej(self.coor[0], self.coor[1], self.z+40)
                 time.sleep(1)
 
                 # place
-                d.jump(self.pos[j][0], self.pos[j][1], self.z)
+                d.jump(self.pos[j][0], self.pos[j][1], self.z, 0)
                 d.suck(False)
 
             for i, j in zip(self.blue_centers, range(len(self.blue_centers))):  # blue
                 # get
-                self.coor = [self.x + (i[1] - self.cx) * self.xupr,
-                             self.y + (i[0] - self.cy) * self.yupr,]
+                self.coor = [self.x + (i[1] - self.cx) ,
+                             self.y + (i[0] - self.cy) ]
 
                 d.suck(False)
-                d.jump(self.coor[0], self.coor[1], self.z)
+                d.jump(self.coor[0], self.coor[1], self.z, 0)
                 d.suck(True)
                 time.sleep(1)
 
                 # place
-                d.jump(self.pos[-1][0], self.pos[-1][1], self.z)
+                d.jump(self.pos[-1][0], self.pos[-1][1], self.z, 0)
 
                 d.suck(False)
 
 
-            d.jump(self.home[0], self.home[1], self.home[2])
+            d.jump(self.home[0], self.home[1], self.home[2], 0)
             self.first = True if self.sit == 9 else not self.first
             self.sit == 0
             self.checkerboardv, self.checkerboard = np.array(
@@ -432,11 +426,7 @@ def main():
         try:
             if board.round % 2 != board.first or True:  # turn
                 if board.check():
-                    # cv2.imshow('frame', board.frame)
-                    #board.intention()
-                    
                     if board.situation() < 5 :
-                    # if board.sit < 5 :
                         board.intention()
                         board.m()
                         time.sleep(6)
@@ -446,7 +436,6 @@ def main():
                 else:
                     pass
                 if board.situation() > 5:
-                # if board.sit > 5:
                     board.end()
             if board.blankcount >= 10:
                 board.sit = 9
