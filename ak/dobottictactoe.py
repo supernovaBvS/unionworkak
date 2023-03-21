@@ -32,35 +32,6 @@ class Checkerboard:
     def __init__(self, test=0, x=265.3, y=45.5, z=-70, x_offset=-35.8, y_offset=-39, 
                  home=[140, 100, 0], first=1, 
                  r_value=1500, b_value=1500, upr=0.0, cx=50, cy=50):
-        """
-        Represents a checkerboard game board and its associated properties, including the position of the Dobot robotic arm, 
-        camera parameters, and chess coordinates.
-
-        Attributes:
-        test (int): A test flag for debugging.
-        z (float): The z-coordinate of the Dobot robotic arm.
-        x (float): The x-coordinate of the top left corner of the grid.
-        y (float): The y-coordinate of the top left corner of the grid.
-        x_offset (float): The horizontal distance between adjacent squares on the grid.
-        y_offset (float): The vertical distance between adjacent squares on the grid.
-        home (list): A list containing the x, y, and z coordinates of the Dobot's home position.
-        first (int): A flag indicating whether the Dobot is moving first.
-        r_value (int): The color area threshold for identifying red squares.
-        b_value (int): The color area threshold for identifying black squares.
-        upr (float): The unit pixel ratio for converting between pixels and real-world distances.
-        cx (int): The x-coordinate of the center of the grid on the camera image.
-        cy (int): The y-coordinate of the center of the grid on the camera image.
-        round (int): The number of moves made.
-        blankcount (int): The number of consecutive empty squares encountered.
-        cap: The OpenCV video capture object.
-        sit (int): The current situation ID.
-        pos (list): A list of six tuples containing the x and y coordinates of each of the six chess positions.
-        checkattemp (int): The number of attempts made to check for changes on the board.
-        checkerboard (str): A string representing the state of the board, with '0' for empty squares, '1' for black 
-            pieces, and '2' for red pieces.
-        checkerboardchecks (list): A list of checkboard strings representing the previous states of the board.
-        grid (numpy.ndarray): A 2x4 array representing the coordinates of each square on the grid.
-        """
         self.test = test
         self.r_value = r_value  # color area threshold
         self.b_value = b_value  # ''
