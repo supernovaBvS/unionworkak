@@ -11,7 +11,7 @@ port = available_ports[2].device
 
 d = pydobot.Dobot(port)
 d.suck(False)
-d.speed()
+d.speed(90,90)
 
 print('start')
 movex = {
@@ -29,73 +29,74 @@ movex = {
     '000002121': [0], '021002001': [6], '121200000': [8]}
 
 
-class Checkerboard:
-    def __init__(self, test=0, z=-50, x=295 , y=45, x_offset=-45, y_offset=-45,
-                 home=[140, 130, 0], first=1, r_value=1500, b_value=1500, cx=150, cy=150):
+
+class Checkergame:
+    def __init__(
+        self, test=0, z=-50, x=300 , y=45, x_offset=-45, y_offset=-45,
+        home=[200, -140, 0], first=1, r_value=1500, b_value=1500, upr=0.0,
+            cx=150, cy=150, SITUATION_LOSE = 7, SITUATION_WIN = 8, SITUATION_DRAW = 6
+            ):
         self.test = test
         self.r_value = r_value  # color area threshold
         self.b_value = b_value  # ''
+        self.SITUATION_LOSE = SITUATION_LOSE
+        self.SITUATION_WIN = SITUATION_WIN
+        self.SITUATION_DRAW = SITUATION_DRAW
+
         self.round = 0  # moved count
         self.first = first  # is bot first
         self.blankcount = 0
         self.x, self.y, self.z = x, y, z  # grid #1 coordinates (top left of Dobot #1)
         # ** x, y, x_offset, y_offset must be as precise as possible for Dobot #1.
+
+        self.upr = upr  # unit pixel ratio
         self.cx, self.cy = cx, cy  # grid #1 center image coordinates (normally (55, 55))
         self.x_offset, self.y_offset = x_offset, y_offset
-        self.xupr, self.yupr = self.x_offset/95, self.y_offset/95   # unit pixel ratio
+        self.xupr, self.yupr = self.x_offset , self.y_offset   # unit pixel ratio
         self.cap = cv2.VideoCapture(0)
-
         self.home = home  # home position
         self.sit = 0  # situation id
         self.pos = [(self.x, self.y+self.y_offset*2-35),
                     (self.x+self.x_offset, self.y+self.y_offset*2-35),
                     (self.x+2*x_offset, self.y+self.y_offset*2-35),
                     (self.x, self.y+35),
-                    (self.x+self.x_offset, self.y+38),
-                    (self.x+2*self.x_offset, self.y+38)]  # default chess coordinates
+                    (self.x+self.x_offset, self.y+35),
+                    (self.x+2*self.x_offset, self.y+35)]  # default chess coordinates
         print (self.pos)
         self.checkattemp = 0  # saving checks
-        self.checkerboard = '0' * 9  # checkerboard with color id
         self.checkerboardchecks = ['0' * 9] * 3  # list of self.checkattemp
+        self.checkerboard = '0' * 9  # checkerboard with color id
         self.grid = np.array([[0, 100, 200, 300], [0, 100, 200, 300]])  # cropping
 
-    def c(self):  # capture the checkerboard
-        d.movej(self.home[0], self.home[1], self.home[2])
+    def c(self):
+        """Capture the checkerboard."""
+        d.movej(self.home[0], self.home[1], self.home[2], 0)
         self.frame = self.cap.read()[1]
 
-    def com(self):  # compare new and old checkerboard
-        if (sum(map(lambda c0, c1, c2: c0 == c1 == c2,
-                    self.checkerboardchecks[0], self.checkerboardchecks[1],
-                    self.checkerboardchecks[2])) == 9):  # 3 same check results of new
-            different = sum(map(lambda c, c0: c != c0, self.checkerboard,
-                                self.checkerboardchecks[0]))  # difference of old and new
+    def com(self):
+        """Compare new and old checkerboard."""
+        # Check if the last 3 checkerboard captures are the same
+        if all(x == self.checkerboardchecks[0] for x in self.checkerboardchecks[1:]):
+            # Count the number of different checkerboard squares
+            different = sum(c1 != c2 for c1, c2 in zip(self.checkerboard, self.checkerboardchecks[0]))
+            # Check if only one square is different
             if different == 1:
-                if (
-                    sum([not int(x) for x in self.checkerboard if x == '0']
-                        ) - sum([not int(x) for x in self.checkerboardchecks[0]
-                                 if x == '0']) == 1):  # grid with chess different count = -1
-                    return True
-                else:
-                    return False
-            elif different == 0:
-                return False
-            else:
-                pass
-        else:
-            return False
+                # Check if the difference is in the chess grid
+                if self.checkerboard.count('0') == self.checkerboardchecks[0].count('0') + 1:
+                    return True  # Chess has been moved
+        return False
 
-    def cnt(self, src, lmask, umask, lmask1=0, umask1=0, getCenter=False):  # find contour
+    def cnt(self, src, lmask, umask, lmask1=0, umask1=0, getCenter=False):
         blurred = cv2.GaussianBlur(src, (5, 5), 0)
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if np.any(lmask1 + umask1):
             mask1 = cv2.inRange(hsv, lmask1, umask1)
-            mask = mask + mask1
-        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                    cv2.CHAIN_APPROX_NONE)[0]
-
+            mask += mask1
         
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
         if len(contours) > 0:
             contour = max(contours, key=cv2.contourArea)  # only return the contour with max area
             area = cv2.contourArea(contour)
@@ -115,16 +116,16 @@ class Checkerboard:
             else:
                 return 0, 0
 
-    def cntcenter(self, src, threshold, lmask, umask, lmask1=0, umask1=0):  # find contour of all placed chess and get their centers
+    def cntcenter(self, src, threshold, lmask, umask, lmask1=0, umask1=0):
         blurred = cv2.GaussianBlur(src, (5, 5), 0)
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if np.any(lmask1 + umask1):
             mask1 = cv2.inRange(hsv, lmask1, umask1)
-            mask = mask + mask1
-        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                    cv2.CHAIN_APPROX_NONE)[0]
+            mask += mask1
+        
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         self.centers = []
         if len(contours) > 0:
@@ -180,8 +181,6 @@ class Checkerboard:
             print('camera blocked')
             return False
 
-        '''if startc:
-            return np.std(self.frame, 2).std() < 12'''
         self.centers = {}
         self.checkattemp += 1
         checking = ''
@@ -191,7 +190,7 @@ class Checkerboard:
             lower_blue = np.array([80, 100, 50]) #'''90, 100, 90'''
             upper_blue = np.array([120, 255, 255])#110,255,255
             # red
-            lower_red = np.array([0, 100, 10])#0, 100, 100
+            lower_red = np.array([0, 100, 90])#0, 100, 100
             upper_red = np.array([10, 255, 255])#
             lower_red1 = np.array([170, 100, 90])
             upper_red1 = np.array([180, 255, 255])
@@ -261,15 +260,18 @@ class Checkerboard:
         self.sit = 0
         self.rows()
         for rn in self.r:
-            if np.count_nonzero(rn[0] == 2) == 3:  # lose
+            if np.count_nonzero(rn[0] == 2) == 3:
                 self.sit = 7
                 return self.sit
-            elif np.count_nonzero(rn[0] == 1) == 3:  # win
+
+            if np.count_nonzero(rn[0] == 1) == 3:
                 self.sit = 8
                 return self.sit
-        if np.count_nonzero(self.checkerboardv) == 9:  # draw
+
+        if np.count_nonzero(self.checkerboardv) == 9:
             self.sit = 6
             return self.sit
+
 
         if self.sit == 0:
             for rn in self.r:
@@ -311,121 +313,112 @@ class Checkerboard:
         return self.sit
 
     def intention(self):
-        print ("self.move[0]red = ",self.move[0])
-        print ("self.move[1]blue = ",self.move[1])
-        self.coor = [self.x + (self.x_offset * self.move[0]),
-                     self.y + (self.y_offset * self.move[1])]
-        print(self.move, self.coor, sep='   ')
+        self.coor = [self.x + self.x_offset * self.move[0],
+                    self.y + self.y_offset * self.move[1]]
+        print(f"Intended move: {self.move}")
+        print(f"Coordinates: {self.coor}")
         return self.coor
+
 
     def m(self):  # move
         # get
         d.suck(False)
-        d.jump(self.pos[self.round][0], self.pos[self.round][1],self.z)
+        d.jump(self.pos[self.round][0], self.pos[self.round][1],self.z, 0)
         d.suck(True)
-        d.movej(self.pos[self.round][0], self.pos[self.round][1],self.z+40)
+        d.movej(self.pos[self.round][0], self.pos[self.round][1],self.z+40, 0)
         time.sleep(2)
 
         # place
-        d.jump(self.coor[0], self.coor[1], self.z)
+        d.jump(self.coor[0], self.coor[1]+5, self.z, 0)
         d.suck(False)
-        d.jump(self.home[0], self.home[1], self.home[2])
+        d.jump(self.home[0], self.home[1], self.home[2], 0)
 
         self.checkerboard = self.checkerboard[
             :self.move[0] * 3 + self.move[1]] + '1' + self.checkerboard[
             self.move[0] * 3 + self.move[1] + 1:]
         self.round += 1
 
-    def start(self):  # start game setup
-        
+    def start(self):
         while True:
-            if self.check(0, 1):
-                print('bot first = ', self.first)
+            user_choice = input("Do you want to go first? (y/n) ").lower()
+            if user_choice == 'y':
+                self.first = False
+                print('You go first.')
+                return 'Game Start'
+            elif user_choice == 'n':
+                self.first = True
+                print('Bot goes first.')
                 return 'Game Start'
             else:
                 print('please clear the board.')
+                print("Invalid input. Please enter 'y' or 'n'.")
             time.sleep(1.5)
 
-    def end(self):  # end game and clear checkerboard
+    def reset_game(self):
+        self.first = True if self.sit == 9 else not self.first
+        self.sit = 0
+        self.checkerboardv, self.checkerboard = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]), '0' * 9
+        self.checkerboardchecks = ['0' * 9] * 3
+        self.checkattemp = 0
+        self.round = 0
+        self.blankcount = 0
+
+    def end(self):
         if self.sit < 5:
-            #
             pass
         else:
             while self.check(getCenter=True) is False:
                 pass
             self.reds = np.where(self.checkerboardv.reshape(9) == 1)[0]
             self.blues = np.where(self.checkerboardv.reshape(9) == 2)[0]
+
             if self.sit == 9:
-                print('interrupted')
+                print('Game interrupted')
+            elif self.sit == self.SITUATION_WIN:
+                print('You win!')
+            elif self.sit == self.SITUATION_LOSE:
+                print('You lose!')
+            elif self.sit == self.SITUATION_DRAW:
+                print('Draw!')
 
-            if self.sit == 8:
-                print('win')
+            for checker_color, centers in ((1, self.red_centers), (2, self.blue_centers)):
+                for i, center in enumerate(centers):
+                    x, y = self.x + (center[1] - self.cx), self.y + (center[0] - self.cy)
 
-            elif self.sit == 7:
-                print('lose')
+                    # Pick up checker
+                    d.suck(False)
+                    d.jump(x, y, self.z, 0)
+                    d.suck(True)
+                    d.movej(x, y, self.z+40, 0)
+                    time.sleep(1)
 
-            elif self.sit == 6:
-                print('draw')
-
-
-            for i, j in zip(self.red_centers, range(len(self.red_centers))):  # red
-                # get
-
-                print([self.x, i[1] , self.cx],[self.y, i[0] , self.cy])
-                       
-                
-                self.coor = [self.x + (i[1] - self.cx) ,
-                             self.y + (i[0] - self.cy) ]
-                print(self.coor)
-                d.suck(False)
-                d.jump(self.coor[0], self.coor[1], self.z, 0)
-                d.suck(True)
-                time.sleep(1)
-
-                # place
-                d.jump(self.pos[j][0], self.pos[j][1], self.z, 0)
-                d.suck(False)
-
-            for i, j in zip(self.blue_centers, range(len(self.blue_centers))):  # blue
-                # get
-                self.coor = [self.x + (i[1] - self.cx) ,
-                             self.y + (i[0] - self.cy) ]
-
-                d.suck(False)
-                d.jump(self.coor[0], self.coor[1], self.z, 0)
-                d.suck(True)
-                time.sleep(1)
-
-                # place
-                d.jump(self.pos[-1][0], self.pos[-1][1], self.z, 0)
-
-                d.suck(False)
+                    # Place checker in corresponding position
+                    if checker_color == 1:
+                        j = i
+                    else:
+                        j = -1
+                    pos_x, pos_y = self.pos[j][0], self.pos[j][1]
+                    d.jump(pos_x, pos_y, self.z, 0)
+                    d.suck(False)
 
 
-            d.jump(self.home[0], self.home[1], self.home[2], 0)
-            self.first = True if self.sit == 9 else not self.first
-            self.sit == 0
-            self.checkerboardv, self.checkerboard = np.array(
-                [[0, 0, 0], [0, 0, 0], [0, 0, 0]]), '0' * 9
-
-            self.start()
-            self.checkerboard = '0' * 9
-            self.checkerboardchecks = ['0' * 9] * 3
-            self.checkattemp = 0
-            self.round = 0
-            self.blankcount = 0
 
 
 # main
 def main():
     global board
-    board = Checkerboard(1)
+    board = Checkergame(1)
     board.start()
+
+
     while True:
         print(board.checkerboard)
         try:
             if board.round % 2 != board.first or True:  # turn
                 if board.check():
+                    # cv2.imshow('frame', board.frame)
+                    #board.intention()
+
                     if board.situation() < 5 :
                         board.intention()
                         board.m()
@@ -435,11 +428,9 @@ def main():
                         time.sleep(5 + board.round * 10)
                 else:
                     pass
-                if board.situation() > 5:
+                if board.blankcount >= 10:
+                    board.sit = 9
                     board.end()
-            if board.blankcount >= 10:
-                board.sit = 9
-                board.end()
 
         except KeyboardInterrupt:
             return None
@@ -448,6 +439,4 @@ def main():
 if __name__ == '__main__':
     initstat = True
     main()
-    pass
-
-
+    board.reset_game()
