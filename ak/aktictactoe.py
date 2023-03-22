@@ -32,7 +32,7 @@ movex = {
 
 class Checkergame:
     def __init__(
-        self, test=0, z=-50, x=300 , y=45, x_offset=-45, y_offset=-45,
+        self, test=0, z=-50, x=300 , y=41, x_offset=-45, y_offset=-45,
         home=[200, -140, 0], first=1, r_value=1500, b_value=1500, upr=0.0,
             cx=150, cy=150, SITUATION_LOSE = 7, SITUATION_WIN = 8, SITUATION_DRAW = 6
             ):
@@ -56,12 +56,12 @@ class Checkergame:
         self.cap = cv2.VideoCapture(0)
         self.home = home  # home position
         self.sit = 0  # situation id
-        self.pos = [(self.x, self.y+self.y_offset*2-35),
+        self.pos = [(self.x+2, self.y+self.y_offset*2-35),
                     (self.x+self.x_offset, self.y+self.y_offset*2-35),
                     (self.x+2*x_offset, self.y+self.y_offset*2-35),
-                    (self.x, self.y+35),
-                    (self.x+self.x_offset, self.y+35),
-                    (self.x+2*self.x_offset, self.y+35)]  # default chess coordinates
+                    (self.x, self.y+43),
+                    (self.x+self.x_offset, self.y+43),
+                    (self.x+2*self.x_offset, self.y+40)]  # default chess coordinates
         print (self.pos)
         self.checkattemp = 0  # saving checks
         self.checkerboardchecks = ['0' * 9] * 3  # list of self.checkattemp
@@ -381,25 +381,25 @@ class Checkergame:
             elif self.sit == self.SITUATION_DRAW:
                 print('Draw!')
 
-            for checker_color, centers in ((1, self.red_centers), (2, self.blue_centers)):
-                for i, center in enumerate(centers):
-                    x, y = self.x + (center[1] - self.cx), self.y + (center[0] - self.cy)
+            # for checker_color, centers in ((1, self.red_centers), (2, self.blue_centers)):
+            #     for i, center in enumerate(centers):
+            #         x, y = self.x + (center[1] - self.cx), self.y + (center[0] - self.cy)
 
-                    # Pick up checker
-                    d.suck(False)
-                    d.jump(x, y, self.z, 0)
-                    d.suck(True)
-                    d.movej(x, y, self.z+40, 0)
-                    time.sleep(1)
+            #         # Pick up checker
+            #         d.suck(False)
+            #         d.jump(x, y, self.z, 0)
+            #         d.suck(True)
+            #         d.movej(x, y, self.z+40, 0)
+            #         time.sleep(1)
 
-                    # Place checker in corresponding position
-                    if checker_color == 1:
-                        j = i
-                    else:
-                        j = -1
-                    pos_x, pos_y = self.pos[j][0], self.pos[j][1]
-                    d.jump(pos_x, pos_y, self.z, 0)
-                    d.suck(False)
+            #         # Place checker in corresponding position
+            #         if checker_color == 1:
+            #             j = i
+            #         else:
+            #             j = -1
+            #         pos_x, pos_y = self.pos[j][0], self.pos[j][1]
+            #         d.jump(pos_x, pos_y, self.z, 0)
+            #         d.suck(False)
 
 
 # main

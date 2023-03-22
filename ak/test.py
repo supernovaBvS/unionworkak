@@ -14,41 +14,16 @@ d.suck(False)
 d.speed()
 
 print('start')
-cap = cv2.VideoCapture(0)
-hx, hy, hz = [140, 100,0]
-d.movej(hx, hy, hz)
-
-src = cv2.imread('/Users/dev/Desktop/union_work/git/unionworkak/tttoe.png')
-
-def contour(self, src, lmask, umask, lmask1=0, umask1=0, getCentre=False):
-    blurred = cv2.GaussianBlur(src, (5,5), 0)
-    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-
-    mask = cv2.inRange(hsv, lmask, umask)
-    if lmask1 + umask1 != 0:
-        mask1 = cv2.inRange(hsv, lmask1, umask1)
-        mask = mask + mask1
-    contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[1]
-
-    if len(contours) > 0:
-        contour = max(contours, key=cv2.contourArea)
-        area = cv2.contourArea(contour)
-        if getCentre:
-            Moments = cv2.moments(contour)
-            if Moments['m00'] != 0:
-                cX = int(Moments['m10'] / Moments['m00'])
-                cY = int(Moments['m01'] / Moments['m00'])
-            else:
-                cX, cY = (self.cx, self.cy)
-                return contour, area, (cX, cY)
-        else:
-            return contour, area
-    else:
-        if getCentre:
-            return 0, 0, (False, False)
-        else:
-            return 0, 0
-
-contour(src)
-cv2.waitKey(0)
-cap.release()
+z= -50
+x= 300
+y= 41 
+x_offset= -45
+y_offset= -45
+pos = [(x+2, y+y_offset*2-35),
+        (x+x_offset, y+y_offset*2-35),
+        (x+2*x_offset, y+y_offset*2-35),
+        (x, y+43),
+        (x+x_offset, y+43),
+        (x+2*x_offset, y+40)]
+hx, hy = pos[2]
+d.jump(hx, hy, z+10)
