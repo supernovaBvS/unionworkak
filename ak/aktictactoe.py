@@ -402,8 +402,6 @@ class Checkergame:
                     d.suck(False)
 
 
-
-
 # main
 def main():
     global board
@@ -439,4 +437,4 @@ def main():
 if __name__ == '__main__':
     initstat = True
     main()
-    board.reset_game()
+    pass
