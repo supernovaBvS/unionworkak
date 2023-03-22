@@ -47,7 +47,6 @@ class Checkergame:
         self.first = first  # is bot first
         self.blankcount = 0
         self.x, self.y, self.z = x, y, z  # grid #1 coordinates (top left of Dobot #1)
-        # ** x, y, x_offset, y_offset must be as precise as possible for Dobot #1.
 
         self.upr = upr  # unit pixel ratio
         self.cx, self.cy = cx, cy  # grid #1 center image coordinates (normally (55, 55))
@@ -400,6 +399,49 @@ class Checkergame:
             #         pos_x, pos_y = self.pos[j][0], self.pos[j][1]
             #         d.jump(pos_x, pos_y, self.z, 0)
             #         d.suck(False)
+
+            for i, j in zip(self.red_centers, range(len(self.red_centers))):  # red
+                # get
+                self.coor = [self.x + (i[1] - self.cx),
+                             self.y + (i[0] - self.cy)]
+
+                d.suck(False)
+                d.jump(self.coor[0], self.coor[1], self.z, 0)
+                d.suck(True)
+                time.sleep(1)
+
+                # place
+                d.jump(self.pos[j][0], self.pos[j][1], self.z, 0)
+                d.suck(False)
+
+            for i, j in zip(self.blue_centers, range(len(self.blue_centers))):  # blue
+                # get
+                self.coor = [self.x + (i[1] - self.cx),
+                             self.y + (i[0] - self.cy)]
+
+                d.suck(False)
+                d.jump(self.coor[0], self.coor[1], self.z, 0)
+                d.suck(True)
+                time.sleep(1)
+
+                # place
+                d.jump(self.pos[-1][0], self.pos[-1][1], self.z, 0)
+
+                d.suck(False)
+
+            d.movej(self.pos[-1][0], self.pos[-1][1], self.z + 20, 0)
+            d.movej(self.home[0], self.home[1], self.home[2], 0)
+            self.first = True if self.sit == 9 else not self.first
+            self.sit == 0
+            self.checkerboardv, self.checkerboard = np.array(
+                [[0, 0, 0], [0, 0, 0], [0, 0, 0]]), '0' * 9
+
+            self.start()
+            self.checkerboard = '0' * 9
+            self.checkerboardchecks = ['0' * 9] * 3
+            self.checkattemp = 0
+            self.round = 0
+            self.blankcount = 0
 
 
 # main
