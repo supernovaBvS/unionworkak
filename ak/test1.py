@@ -7,7 +7,7 @@ from serial.tools import list_ports
 
 available_ports = list_ports.comports()
 print(f'available ports: {[x.device for x in available_ports]}')
-port = available_ports[2].device
+port = available_ports[3].device
 
 d = pydobot.Dobot(port)
 d.suck(False)
@@ -32,11 +32,16 @@ movex = {
 
 class Checkergame:
     def __init__(
-                self, test=0, z=-50, x=300 , y=41, x_offset=-45, y_offset=-45,
-                home=[200, -140, 0], first=1, r_value=1500, b_value=1500, upr=0.0, cx=150, cy=150):
+        self, test=0, z=-50, x=300 , y=41, x_offset=-45, y_offset=-45,
+        home=[200, -140, 0], first=1, r_value=1500, b_value=1500, upr=0.0,
+            cx=150, cy=150, SITUATION_LOSE = 7, SITUATION_WIN = 8, SITUATION_DRAW = 6
+            ):
         self.test = test
         self.r_value = r_value  # color area threshold
         self.b_value = b_value  # ''
+        self.SITUATION_LOSE = SITUATION_LOSE
+        self.SITUATION_WIN = SITUATION_WIN
+        self.SITUATION_DRAW = SITUATION_DRAW
 
         self.round = 0  # moved count
         self.first = first  # is bot first
@@ -55,7 +60,7 @@ class Checkergame:
                     (self.x+2*x_offset, self.y+self.y_offset*2-35),
                     (self.x, self.y+43),
                     (self.x+self.x_offset, self.y+43),
-                    (self.x+2*self.x_offset, self.y+43)]  # default chess coordinates
+                    (self.x+2*self.x_offset, self.y+40)]  # default chess coordinates
         print (self.pos)
         self.checkattemp = 0  # saving checks
         self.checkerboardchecks = ['0' * 9] * 3  # list of self.checkattemp
@@ -85,7 +90,7 @@ class Checkergame:
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if np.any(lmask1 + umask1):
             mask1 = cv2.inRange(hsv, lmask1, umask1)
             mask += mask1
         
@@ -115,7 +120,7 @@ class Checkergame:
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lmask, umask)
-        if lmask1 + umask1 is not 0:
+        if np.any(lmask1 + umask1):
             mask1 = cv2.inRange(hsv, lmask1, umask1)
             mask += mask1
         
@@ -349,7 +354,7 @@ class Checkergame:
             time.sleep(1.5)
 
     def reset_game(self):
-        # self.first = True if self.sit == 9 else not self.first
+        self.first = True if self.sit == 9 else not self.first
         self.sit = 0
         self.checkerboardv, self.checkerboard = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]), '0' * 9
         self.checkerboardchecks = ['0' * 9] * 3
@@ -368,32 +373,32 @@ class Checkergame:
 
             if self.sit == 9:
                 print('Game interrupted')
-            elif self.sit == 7:
+            elif self.sit == self.SITUATION_WIN:
                 print('You win!')
-            elif self.sit == 8:
+            elif self.sit == self.SITUATION_LOSE:
                 print('You lose!')
-            elif self.sit == 6:
+            elif self.sit == self.SITUATION_DRAW:
                 print('Draw!')
 
-            for checker_color, centers in ((1, self.red_centers), (2, self.blue_centers)):
-                for i, center in enumerate(centers):
-                    x, y = self.x + (center[1] - self.cx), self.y + (center[0] - self.cy)
+            # for checker_color, centers in ((1, self.red_centers), (2, self.blue_centers)):
+            #     for i, center in enumerate(centers):
+            #         x, y = self.x + (center[1] - self.cx), self.y + (center[0] - self.cy)
 
-                    # Pick up checker
-                    d.suck(False)
-                    d.jump(x, y, self.z, 0)
-                    d.suck(True)
-                    d.movej(x, y, self.z+40, 0)
-                    time.sleep(1)
+            #         # Pick up checker
+            #         d.suck(False)
+            #         d.jump(x, y, self.z, 0)
+            #         d.suck(True)
+            #         d.movej(x, y, self.z+40, 0)
+            #         time.sleep(1)
 
-                    # Place checker in corresponding position
-                    if checker_color == 1:
-                        j = i
-                    else:
-                        j = -1
-                    pos_x, pos_y = self.pos[j][0], self.pos[j][1]
-                    d.jump(pos_x, pos_y, self.z, 0)
-                    d.suck(False)
+            #         # Place checker in corresponding position
+            #         if checker_color == 1:
+            #             j = i
+            #         else:
+            #             j = -1
+            #         pos_x, pos_y = self.pos[j][0], self.pos[j][1]
+            #         d.jump(pos_x, pos_y, self.z, 0)
+            #         d.suck(False)
 
             for i, j in zip(self.red_centers, range(len(self.red_centers))):  # red
                 # get
@@ -424,7 +429,12 @@ class Checkergame:
 
                 d.suck(False)
 
-
+            d.movej(self.pos[-1][0], self.pos[-1][1], self.z + 20, 0)
+            d.movej(self.home[0], self.home[1], self.home[2], 0)
+            self.first = True if self.sit == 9 else not self.first
+            self.sit == 0
+            self.checkerboardv, self.checkerboard = np.array(
+                [[0, 0, 0], [0, 0, 0], [0, 0, 0]]), '0' * 9
 
             self.start()
             self.checkerboard = '0' * 9
