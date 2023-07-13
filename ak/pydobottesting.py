@@ -13,5 +13,3 @@ d.speed()
 print('start')
 
 d.close()
-
-
