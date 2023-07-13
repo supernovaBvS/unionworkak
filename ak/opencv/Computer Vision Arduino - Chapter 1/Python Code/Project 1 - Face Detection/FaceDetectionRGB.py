@@ -17,4 +17,6 @@ while True:
         arduino.sendData([0, 1, 1])
 
     cv2.imshow("Image", img)
-    cv2.waitKey(1)
+    key = cv2.waitKey(1)
+    if key == 27:
+        break

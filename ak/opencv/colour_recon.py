@@ -1,3 +1,5 @@
+#first learning 
+
 import cv2
 
 cap = cv2.VideoCapture(0)
@@ -14,29 +16,40 @@ while True:
 
     pixel_centre = hsv_frame[cy, cx]
     hue_value = pixel_centre[0]
+    saturation_value = pixel_centre[1]
 
     color = "Undefined"
-    if hue_value == 0:
-        color = "BLACK"
-    elif hue_value < 5:
+
+    if saturation_value < 50:
+        if hue_value == 0:
+            color = "BLACK"
+        elif hue_value == 255:
+            color = "WHITE"
+        else:
+            color = "GRAY"
+    elif 0 <= hue_value < 5:
         color = "RED"
-    elif hue_value < 22:
+    elif 5 <= hue_value < 22:
         color = "ORANGE"
-    elif hue_value < 29:
+    elif 22 <= hue_value < 29:
         color = "Light YELLOW"
-    elif hue_value < 33:
+    elif 29 <= hue_value < 33:
         color = "YELLOW"
-    elif hue_value < 78:
+    elif 33 <= hue_value < 78:
         color = "GREEN"
-    elif hue_value < 100:
+    elif 78 <= hue_value < 100:
         color = "Deep GREEN"
-    elif hue_value < 131:
+    elif 100 <= hue_value < 130:
         color = "BLUE"
-    elif hue_value < 170:
+    elif 131 <= hue_value < 170:
         color = "VIOLET"
+    elif 170 <= hue_value <= 179:
+        color = "DEEP PURPLE"
     else:
         color = "RED"
+
     print(pixel_centre[0], "0")
+    print(pixel_centre[1], "1")
     print(color)
     # print(pixel_centre[1], "1")
     pixel_centre_bgr = frame[cy, cx]

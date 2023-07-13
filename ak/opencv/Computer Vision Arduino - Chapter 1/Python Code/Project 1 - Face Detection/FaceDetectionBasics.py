@@ -8,4 +8,7 @@ while True:
     success, img = cap.read()
     img, bboxs = detector.findFaces(img)
     cv2.imshow("Image", img)
-    cv2.waitKey(1)
+    
+    key = cv2.waitKey(1)
+    if key == 27:
+        break
