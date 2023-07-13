@@ -113,8 +113,6 @@ void setup() {
   pinMode(51, INPUT_PULLUP); //G
   pinMode(10, INPUT_PULLUP); //B
   pinMode(13, INPUT_PULLUP); //W
-  
-  pinMode(led,OUTPUT);
 
   //ak
   pinMode(led1, OUTPUT);
