@@ -7,6 +7,7 @@ def color_detection(image, area):
     
     # Define the ranges for different colors in HSV
     color_ranges = {
+        'aliceblue': ([101, 30, 200], [130, 100, 255]),
         'red': ([0, 70, 50], [10, 255, 255]),
         'orange': ([11, 70, 50], [25, 255, 255]),
         'yellow': ([26, 70, 50], [35, 255, 255]),
@@ -123,46 +124,7 @@ def color_detection(image, area):
         'lightgray': ([0, 0, 180], [179, 30, 230]),
         'lightgreen': ([36, 30, 150], [70, 100, 255]),
         'lightpink': ([161, 30, 150], [179, 100, 255]),
-        'lightsalmon': ([6, 30, 150], [20, 100, 255]),
-        'aliceblue': ([101, 30, 200], [130, 100, 255]),
-        'antiquewhite': ([0, 20, 200], [30, 100, 255]),
-        'aquamarine': ([76, 30, 150], [100, 100, 255]),
-        'blueviolet': ([131, 70, 50], [160, 255, 255]),
-        'burlywood': ([11, 30, 150], [25, 100, 255]),
-        'cadetblue': ([91, 30, 150], [110, 100, 255]),
-        'cornflowerblue': ([101, 30, 150], [130, 100, 255]),
-        'darkblue': ([100, 70, 50], [140, 255, 255]),
-        'darkcyan': ([81, 70, 50], [100, 255, 255]),
-        'darkgoldenrod': ([21, 70, 50], [35, 255, 255]),
-        'darkgray': ([0, 0, 100], [179, 30, 180]),
-        'darkgreen': ([36, 70, 50], [70, 255, 255]),
-        'darkkhaki': ([26, 30, 150], [45, 100, 255]),
-        'darkmagenta': ([141, 70, 50], [160, 255, 255]),
-        'darkolivegreen': ([36, 30, 50], [70, 100, 255]),
-        'darkorange': ([11, 70, 50], [25, 255, 255]),
-        'darkorchid': ([131, 70, 50], [160, 255, 255]),
-        'darkred': ([0, 70, 50], [10, 255, 255]),
-        'darksalmon': ([6, 30, 150], [20, 100, 255]),
-        'darkseagreen': ([71, 30, 50], [100, 100, 255]),
-        'darkslateblue': ([101, 30, 50], [130, 100, 255]),
-        'darkslategray': ([101, 0, 70], [130, 30, 180]),
-        'darkturquoise': ([71, 70, 50], [100, 255, 255]),
-        'darkviolet': ([141, 70, 50], [160, 255, 255]),
-        'deeppink': ([161, 70, 50], [179, 255, 255]),
-        'deepskyblue': ([101, 70, 50], [130, 255, 255]),
-        'dimgray': ([0, 0, 70], [179, 30, 105]),
-        'dodgerblue': ([91, 70, 50], [110, 255, 255]),
-        'firebrick': ([1, 70, 50], [8, 255, 255]),
-        'floralwhite': ([0, 20, 200], [30, 100, 255]),
-        'forestgreen': ([36, 30, 50], [70, 100, 255]),
-        'ghostwhite': ([0, 0, 200], [179, 30, 255]),
-        'greenyellow': ([36, 70, 50], [70, 255, 255]),
-        'honeydew': ([76, 0, 200], [100, 30, 255]),
-        'hotpink': ([141, 70, 50], [160, 255, 255]),
-        'indianred': ([0, 70, 50], [5, 255, 255]),
-        'khaki': ([26, 30, 150], [45, 100, 255]),
-        'lavenderblush': ([161, 20, 200], [179, 100, 255]),
-        'lawngreen': ([36, 70, 50], [70, 255, 255]),
+        'lightsalmon': ([6, 30, 150], [20, 100, 255]), 
     }
     
     # Extract the area for color detection
@@ -186,7 +148,7 @@ def color_detection(image, area):
 video_capture = cv2.VideoCapture(0)
 
 # Define the dimensions and position of the color detection area
-area_x = 500
+area_x = 900
 area_y = 600
 area_width = 50
 area_height = 50
