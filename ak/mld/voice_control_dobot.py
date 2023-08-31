@@ -7,28 +7,15 @@ import numpy as np
 import pydobot
 from serial.tools import list_ports
 
-# available_ports = list_ports.comports()
-# print(f'available ports: {[x.device for x in available_ports]}')
-# port = available_ports[2].device
+available_ports = list_ports.comports()
+print(f'available ports: {[x.device for x in available_ports]}')
+port = available_ports[-1].device
 
-# d = pydobot.Dobot(port)
-# d.suck(False)
-# d.speed()
-
-z= -50
-x= 300
-y= 41
-x_offset= -45
-y_offset= -45
-pos = [(x+2, y+y_offset*2-35),
-        (x+x_offset, y+y_offset*2-35),
-        (x+2*x_offset, y+y_offset*2-35),
-        (x, y+43),
-        (x+x_offset, y+43),
-        (x+2*x_offset, y+43)]
+d = pydobot.Dobot(port)
 print('start')
 
-r = sr.Recognizer()
+recognizer = sr.Recognizer()
+microphone = sr.Microphone()
 engine = pyttsx3.init()
 
 def speak(text):
@@ -37,39 +24,90 @@ def speak(text):
 
 # Use the default microphone as the audio source
 def listen():
-    with sr.Microphone() as source:
-        # Adjust for ambient noise
-        r.adjust_for_ambient_noise(source)
-        
-        # Listen for user input
+    with microphone as source:
         print("Say something!")
-        speak("What do you want to drink?")
-        audio = r.listen(source)
-        # Recognize speech using Google Speech Recognition
+        audio = recognizer.listen(source)
+        
         try:
-            text = r.recognize_google(audio)
-            print("You said: ", text)
-            return text
-        except:
+            # Use the PocketSphinx engine for local speech recognition
+            text = recognizer.recognize_sphinx(audio)
+            print("You said:", text)
+            return text.lower()
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+            return None
+        except sr.RequestError as e:
+            print("Error with the request; {0}".format(e))
             return None
 
-while True:
-    command = listen()
+def control_dobot():
 
-    if command is None:
-        continue
+    def left():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y-10,z,r)
+        print(d.get_pose().position[:4])
 
-    if 'coffee' in command:
-        # hx, hy = pos[0]
-        # d.jump(hx, hy, z+10,0)
-        speak('this is your coffee')
-    elif 'tea' in command:
-        # hx, hy = pos[3]
-        # d.jump(hx, hy, z+10,0)
-        speak('this is your tea')
-    else:
-        speak('we dont sell this drink, please try again')
+    def right():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y+10,z,r)
+        print(d.get_pose().position[:4])
+    
+    def forward():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x+10,y,z,r)
+        print(d.get_pose().position[:4])
 
-    # d.jump(250,0,70)
-    print('end')
-    break
+    def back():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x-10,y,z,r)
+        print(d.get_pose().position[:4])
+
+    def up():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y,z+10,r)
+        print(d.get_pose().position[:4])
+
+    def down():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y,z-10,r)
+        print(d.get_pose().position[:4])
+    
+    def r_L():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y,z,r+10)
+        print(d.get_pose().position[:4])
+
+    def r_R():
+        x, y, z, r = d.get_pose().position[0:4]
+        d.movej(x,y,z,r-10)
+        print(d.get_pose().position[:4])
+
+    while True:
+        command = listen()
+
+        if command is None:
+            continue
+
+        if 'up' in command:
+            up()
+        if 'down' in command:
+            down()
+        if 'left' in command:
+            left()
+        if 'right' in command:
+            right()
+        if 'forward' in command:
+            forward()
+        if 'back' in command:
+            back()
+        if 'twist' and 'left' in command:
+            r_L()
+        if 'twist' and 'right' in command:
+            r_R()
+        if 'break' in command:
+            break
+
+
+if __name__ == '__main__':
+    control_dobot()
+

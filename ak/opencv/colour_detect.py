@@ -26,7 +26,7 @@ def color_detection(image, area):
         'navy': ([100, 70, 50], [140, 255, 255]),
         'teal': ([71, 70, 50], [100, 255, 255]),
         'indigo': ([101, 70, 50], [130, 255, 255]),
-    }
+                                                    }
 
     
     # Extract the area for color detection
@@ -52,8 +52,8 @@ video_capture = cv2.VideoCapture(0)
 # Define the dimensions and position of the color detection area
 area_x = 900
 area_y = 600
-area_width = 50
-area_height = 50
+area_width = 30
+area_height = 30
 
 while True:
     # Capture frame-by-frame

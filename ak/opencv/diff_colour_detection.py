@@ -3,25 +3,25 @@ import numpy as np
 import glob
 
 color_ranges = {
-    'red': (np.array([0, 70, 50]), np.array([10, 255, 255])),
-    'orange': (np.array([11, 70, 50]), np.array([25, 255, 255])),
+    # 'red': (np.array([0, 70, 50]), np.array([10, 255, 255])),
+    # 'orange': (np.array([11, 70, 50]), np.array([25, 255, 255])),
     'yellow': (np.array([26, 70, 50]), np.array([35, 255, 255])),
     'green': (np.array([36, 70, 50]), np.array([70, 255, 255])),
     'blue': (np.array([100, 70, 50]), np.array([130, 255, 255])),
-    'purple': (np.array([131, 70, 50]), np.array([160, 255, 255])),
-    'pink': (np.array([150, 70, 50]), np.array([179, 255, 255])),
-    'white': (np.array([0, 0, 200]), np.array([179, 30, 255])),
+    # 'purple': (np.array([131, 70, 50]), np.array([160, 255, 255])),
+    # 'pink': (np.array([150, 70, 50]), np.array([179, 255, 255])),
+    # 'white': (np.array([0, 0, 200]), np.array([179, 30, 255])),
     'black': (np.array([0, 0, 0]), np.array([179, 255, 30])),
-    'gray': (np.array([0, 0, 31]), np.array([179, 30, 230])),
+    # 'gray': (np.array([0, 0, 31]), np.array([179, 30, 230])),
     'brown': (np.array([8, 70, 50]), np.array([20, 255, 255])),
-    'cyan': (np.array([81, 70, 50]), np.array([100, 255, 255])),
-    'magenta': (np.array([141, 70, 50]), np.array([160, 255, 255])),
+    # 'cyan': (np.array([81, 70, 50]), np.array([100, 255, 255])),
+    # 'magenta': (np.array([141, 70, 50]), np.array([160, 255, 255])),
     'gold': (np.array([21, 70, 50]), np.array([40, 255, 255])),
-    'silver': (np.array([0, 0, 111]), np.array([179, 30, 190])),
-    'maroon': (np.array([0, 70, 50]), np.array([10, 255, 255])),
-    'navy': (np.array([100, 70, 50]), np.array([140, 255, 255])),
-    'teal': (np.array([71, 70, 50]), np.array([100, 255, 255])),
-    'indigo': (np.array([101, 70, 50]), np.array([130, 255, 255])),
+    # 'silver': (np.array([0, 0, 111]), np.array([179, 30, 190])),
+    # 'maroon': (np.array([0, 70, 50]), np.array([10, 255, 255])),
+    # 'navy': (np.array([100, 70, 50]), np.array([140, 255, 255])),
+    # 'teal': (np.array([71, 70, 50]), np.array([100, 255, 255])),
+    # 'indigo': (np.array([101, 70, 50]), np.array([130, 255, 255])),
 }
 
 color_names = {
